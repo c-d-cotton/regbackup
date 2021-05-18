@@ -141,6 +141,8 @@ def runbackup_freqs(backupfunc, rootbackupfolder, freqs):
     freqs are the frequencies with which the backups should be saved
     Options for freqs: M5 (every 5 mins), H1 (every hour), d1 (every day), d10 (every 10 days), m1 (every 1 month)
 
+    I can also specify freqs as M5_5 in which case the second number represents an alternatively specified number of maxbackups that differs from the default.
+
     If H1 is specified in freqs, then a backup is created at rootbackupfolder/H1/yyyymmdd_HH
 
     A limited number of backups will be created i.e. 24 for H1, 12 for M5 etc.
@@ -151,8 +153,29 @@ def runbackup_freqs(backupfunc, rootbackupfolder, freqs):
     if not os.path.isdir(rootbackupfolder):
         os.makedirs(rootbackupfolder)
 
+    # this is the default maxbackup
+    maxbackupsdict = {'M5': 12, 'H1': 24, 'd1': 12, 'd10': 10, 'm1': 13}
+
+    if freqs is None:
+        raise ValueError('Need to specify frequencies with which to do the backups.')
+    
+    # freqs is either M5 or M5_10 meaning back up every 5 mins with a max of 10 backups
+    # go through here and get maxbackups as a function of 
+    freqsonly = []
+    for freq in freqs:
+        freqsplit = freq.split('_')
+        freqsonly.append(freqsplit[0])
+        if len(freqsplit) > 1:
+            if len(freqsplit) > 2:
+                raise ValueError('Weird definition of frequency of backup: ' + str(freq) + '.')
+            try:
+                # adjust default maxbackups
+                maxbackupsdict[freqsplit[0]] = int(freqsplit[1])
+            except Exception:
+                raise ValueError('Weird definition of frequency of backup: ' + str(freq) + '.')
+
     # verify no weird terms included in freqs
-    badterms = set(freqs) - {'M5', 'H1', 'd1', 'd10', 'm1'}
+    badterms = set(freqsonly) - {'M5', 'H1', 'd1', 'd10', 'm1'}
     if len(badterms) > 0:
         raise ValueError('Following bad terms in freqs: ' + str(badterms) + '.')
 
@@ -176,16 +199,16 @@ def runbackup_freqs(backupfunc, rootbackupfolder, freqs):
     d10_strf = adjusted.strftime("%Y%m%d")
     # get relevant date base folder names:}}}
 
-    if 'M5' in freqs:
-        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('M5'), M5_strf, 12)
-    if 'H1' in freqs:
-        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('H1'), H1_strf, 24)
-    if 'd1' in freqs:
-        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('d1'), d1_strf, 12)
-    if 'd10' in freqs:
-        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('d10'), d10_strf, 10)
-    if 'm1' in freqs:
-        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('m1'), m1_strf, 13)
+    if 'M5' in freqsonly:
+        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('M5'), M5_strf, maxbackupsdict['M5'])
+    if 'H1' in freqsonly:
+        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('H1'), H1_strf, maxbackupsdict['H1'])
+    if 'd1' in freqsonly:
+        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('d1'), d1_strf, maxbackupsdict['d1'])
+    if 'd10' in freqsonly:
+        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('d10'), d10_strf, maxbackupsdict['d10'])
+    if 'm1' in freqsonly:
+        runbackup_freqs_single(backupfunc, rootbackupfolder / Path('m1'), m1_strf, maxbackupsdict['m1'])
         
 
 # Backup Code:{{{1
@@ -270,7 +293,7 @@ def backupcode_all_test():
 
     rootbackupfolder = '~/TEST_backupcode_all/'
 
-    freqs = ['M5', 'H1', 'd1', 'd10', 'm1']
+    freqs = ['M5_2', 'H1', 'd1', 'd10', 'm1']
 
     backupcode_all(allcode, rootbackupfolder, freqs) 
 
@@ -284,7 +307,7 @@ def backupcode_all_ap():
     # add input for files
     parser.add_argument("rootbackupfolder", help = "where backup should be saved")
     parser = add_fileinputs(parser)
-    parser.add_argument('-f', '--freq', action = 'append', help = 'Input list of frequencies with which backup should occur. Should be at least one of M5, H1, d1, d10, m1.')
+    parser.add_argument('-f', '--freq', action = 'append', help = 'Input list of frequencies with which backup should occur. Should be at least one of M5, H1, d1, d10, m1. Can also adjust maxbackups by specifying M5_NUM where NUM represents the alternative maxbackups.')
     
     args=parser.parse_args()
     #End argparse:}}}
@@ -328,7 +351,7 @@ def backupdirs_all_test():
 
     rootbackupfolder = '~/TEST_backupdirs_all/'
 
-    freqs = ['M5', 'H1', 'd1', 'd10', 'm1']
+    freqs = ['M5_3', 'H1', 'd1', 'd10', 'm1']
 
     backupdirs_all(alldirs, rootbackupfolder, freqs) 
 
@@ -342,7 +365,7 @@ def backupdirs_all_ap():
     # add input for files
     parser.add_argument("rootbackupfolder", help = "where backup should be saved")
     parser = add_fileinputs(parser)
-    parser.add_argument('-f', '--freq', action = 'append', help = 'Input list of frequencies with which backup should occur. Should be at least one of M5, H1, d1, d10, m1.')
+    parser.add_argument('-f', '--freq', action = 'append', help = 'Input list of frequencies with which backup should occur. Should be at least one of M5, H1, d1, d10, m1. Can also adjust maxbackups by specifying M5_NUM where NUM represents the alternative maxbackups.')
     parser.add_argument("--includeallsubfolders", action = 'store_true')
     
     args=parser.parse_args()
@@ -391,8 +414,10 @@ def copyziplatest(sourceroot, destroot, maxbackups = None):
 
     # delete oldest if already at maxbackups
     if maxbackups is not None:
-        if len(dirs) >= maxbackups:
-            shutil.remove(sourceroot / dirs[0])
+        zips = os.listdir(destroot)
+        if len(zips) >= maxbackups:
+            zips = sorted(zips)
+            os.remove(destroot / zips[0])
 
     shutil.make_archive(destroot / latestdir, 'zip', sourceroot, latestdir)
 
