@@ -149,7 +149,7 @@ def runbackup_freqs(backupfunc, rootbackupfolder, freqs):
 
     # first create root backup path
     if not os.path.isdir(rootbackupfolder):
-        os.mkdir(rootbackupfolder)
+        os.makedirs(rootbackupfolder)
 
     # verify no weird terms included in freqs
     badterms = set(freqs) - {'M5', 'H1', 'd1', 'd10', 'm1'}
