@@ -403,7 +403,6 @@ def copyziplatest_test():
 
     copyziplatest('~/TEST_backupdirs_all/M5/', '~/TEST_backupdirs_all/M5zip/')
 
-copyziplatest_test()
 
 def copyziplatest_ap():
     """
