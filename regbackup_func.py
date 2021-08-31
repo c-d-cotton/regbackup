@@ -458,9 +458,12 @@ def checkworking():
     yesterday = datetime.date.today() - datetime.timedelta(1)
     filename = '~/temp/regbackup/dirs/d1/'.replace('~', os.path.expanduser('~')) + str(yesterday.year)[0: 4] + str(yesterday.month).zfill(2) + str(yesterday.day).zfill(2)
 
-    if not os.path.isdir(filename):
+    today = datetime.date.today()
+    filename2 = '~/temp/regbackup/dirs/d1/'.replace('~', os.path.expanduser('~')) + str(today.year)[0: 4] + str(today.month).zfill(2) + str(today.day).zfill(2)
+
+    if not os.path.isdir(filename) and not os.path.isdir(filename2):
         sys.path.append(str(__projectdir__ / Path('submodules/linux-popupinfo/')))
         from displaypopup_func import genpopup
-        genpopup('Regbackup did not back up daily yesterday', title = 'Regbackup')
+        genpopup('Regbackup did not back up daily yesterday or today', title = 'Regbackup')
         
 
