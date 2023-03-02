@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # the submodules we're downloading are (names separated by a space):
-submodulenames="allcode-list argparse-fileinputs linux-popupinfo"
+submodulenames="allcode-list argparse-fileinputs"
 
 # STANDARD_SUBMODULE_DOWNLOAD_START:{{{
 
