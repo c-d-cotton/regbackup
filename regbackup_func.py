@@ -57,9 +57,30 @@ def rsyncfolders(folderstosync, rootbackupfolder, namesdict = None, excludefolde
         if folder not in namesdict:
             namesdict[folder] = os.path.basename(os.path.abspath(folder))
 
+        sourcefile = os.path.abspath(folder)
+        destfile = os.path.join(rootbackupfolder, namesdict[folder])
+
+        # go through cases where sourcefile/destfile are files first
+        if os.path.isfile(sourcefile):
+            # delete destination
+            if os.path.isfile(destfile):
+                os.remove(destfile)
+            if os.path.isdir(destfile):
+                subprocess.call(['chmod', '-R', '777', destfile])
+                shutil.rmtree(destfile)
+            # copy across
+            shutil.copy(sourcefile, destfile)
+            
+            # continue to next file
+            continue
+
+        # if destfile is a file and sourcefile is a folder need to delete destfile before proceed
+        if os.path.isfile(destfile):
+            os.remove(destfile)
+
         # need to add separator on the end otherwise rsync doesn't work well
-        sourcefolder = os.path.abspath(folder) + os.sep
-        destfolder = os.path.join(rootbackupfolder, namesdict[folder]) + os.sep
+        sourcefolder = sourcefile + os.sep
+        destfolder = destfile + os.sep
 
         # initial rsync options
         rsynclist = ['rsync', '-a', '--delete']
